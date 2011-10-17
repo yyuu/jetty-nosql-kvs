@@ -233,7 +233,7 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 	 * is the session id known to memcached, and is it valid
 	 */
 	public boolean idInUse(String idInCluster) {
-		byte[] dummy = idInCluster.getBytes(); // TODO: replace this by new empty session
+		byte[] dummy = idInCluster.getBytes(); // dummy string for reserving key
 		return ! addKey(idInCluster, dummy);
 	}
 
@@ -315,6 +315,9 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 	}
 
 	protected boolean setKey(String idInCluster, byte[] raw, int expiry) {
+		if (expiry < 0) {
+			expiry = 0; // 0 means forever
+		}
 		log.debug("set: id=" + idInCluster + ", expiry=" + expiry);
 		boolean result = false;
 		try {
@@ -330,6 +333,9 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 	}
 
 	protected boolean addKey(String idInCluster, byte[] raw, int expiry) {
+		if (expiry < 0) {
+			expiry = 0; // 0 means forever
+		}
 		log.debug("add: id=" + idInCluster + ", expiry=" + expiry);
 		boolean result = false;
 		try {

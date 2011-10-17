@@ -93,8 +93,7 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 
 	/* ------------------------------------------------------------ */
 	@Override
-	protected synchronized Object save(NoSqlSession session, Object version,
-			boolean activateAfterSave) {
+	protected synchronized Object save(NoSqlSession session, Object version, boolean activateAfterSave) {
 		try {
 			log.debug("save:" + session);
 			session.willPassivate();
@@ -370,12 +369,7 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 		if (raw == null) {
 			return false;
 		}
-		if (expiry < 0) {
-			// use idManager's default expiry if _cookieMaxAge is negative. (expiry must not be negative)
-			return ((KeyValueStoreSessionIdManager)_sessionIdManager).setKey(mangleKey(idInCluster), raw);
-		} else {
-			return ((KeyValueStoreSessionIdManager)_sessionIdManager).setKey(mangleKey(idInCluster), raw, expiry);
-		}
+		return ((KeyValueStoreSessionIdManager)_sessionIdManager).setKey(mangleKey(idInCluster), raw, expiry);
 	}
 
 	protected boolean addKey(String idInCluster, ISerializableSession data) {
@@ -391,12 +385,7 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 		if (raw == null) {
 			return false;
 		}
-		if (expiry < 0) {
-			// use idManager's default expiry if _cookieMaxAge is negative. (expiry must not be negative)
-			return ((KeyValueStoreSessionIdManager)_sessionIdManager).addKey(mangleKey(idInCluster), raw);
-		} else {
-			return ((KeyValueStoreSessionIdManager)_sessionIdManager).addKey(mangleKey(idInCluster), raw, expiry);
-		}
+		return ((KeyValueStoreSessionIdManager)_sessionIdManager).addKey(mangleKey(idInCluster), raw, expiry);
 	}
 
 	protected boolean deleteKey(String idInCluster) {
