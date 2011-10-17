@@ -93,18 +93,20 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 
 	/* ------------------------------------------------------------ */
 	@Override
-	protected synchronized Object save(NoSqlSession session, Object version, boolean activateAfterSave) {
+	protected Object save(NoSqlSession session, Object version, boolean activateAfterSave) {
 		try {
 			log.debug("save:" + session);
 			session.willPassivate();
 
 			ISerializableSession data = null;
-			if (session.isValid()) {
-				data = getSessionFacade().create(session);
-			} else {
-				log.warn("save: could not recover attributes of invalidated session: id=" + session.getId());
-				data = getSessionFacade().create(session.getId(), session.getCreationTime());
-				data.setValid(false);
+			synchronized (session) {
+				if (session.isValid()) {
+					data = getSessionFacade().create(session);
+				} else {
+					log.warn("save: could not recover attributes of invalidated session: id=" + session.getId());
+					data = getSessionFacade().create(session.getId(), session.getCreationTime());
+					data.setValid(false);
+				}
 			}
 			data.setDomain(_cookieDomain);
 			data.setPath(_cookiePath);
@@ -195,7 +197,7 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 
 	/*------------------------------------------------------------ */
 	@Override
-	protected synchronized NoSqlSession loadSession(String clusterId) {
+	protected NoSqlSession loadSession(String clusterId) {
 		log.debug("loadSession: loading: id=" + clusterId);
 		ISerializableSession data = getKey(clusterId);
 		log.debug("loadSession: loaded: id=" + clusterId + ", data=" + data);
@@ -214,15 +216,19 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 			log.warn("loadSession: invalid id (expected:" + clusterId + ", got:" + data.getId() + ")");
 			return null;
 		}
-		
-		if (!data.getDomain().equals("*") && !_cookieDomain.equals(data.getDomain())) {
-			log.warn("loadSession: invalid cookie domain (expected:" + _cookieDomain + ", got:" + data.getDomain() + ")");
-			return null;
+
+		synchronized (_cookieDomain) {
+			if (_cookieDomain != null && !data.getDomain().equals("*") && !_cookieDomain.equals(data.getDomain())) {
+				log.warn("loadSession: invalid cookie domain (expected:" + _cookieDomain + ", got:" + data.getDomain() + ")");
+				return null;
+			}
 		}
 
-		if (!data.getPath().equals("*") && !_cookiePath.equals(data.getPath())) {
-			log.warn("loadSession: invalid cookie path (expected:" + _cookiePath + ", got:" + data.getPath() + ")");
-			return null;
+		synchronized (_cookiePath) {
+			if (_cookiePath != null && !data.getPath().equals("*") && !_cookiePath.equals(data.getPath())) {
+				log.warn("loadSession: invalid cookie path (expected:" + _cookiePath + ", got:" + data.getPath() + ")");
+				return null;
+			}
 		}
 
 		try {
