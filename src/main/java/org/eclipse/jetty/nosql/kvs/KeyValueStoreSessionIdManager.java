@@ -59,7 +59,7 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 
 	protected String _keyPrefix = "";
 	protected String _keySuffix = "";
-	protected KeyValueStoreClient _client = null;
+	protected IKeyValueStoreClient _client = null;
 
 	/* ------------------------------------------------------------ */
 	public KeyValueStoreSessionIdManager(Server server, String serverString) throws IOException {
@@ -128,7 +128,7 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 		return;
 	}
 
-	protected abstract KeyValueStoreClient newClient(String serverString);
+	protected abstract IKeyValueStoreClient newClient(String serverString);
 
 	/* ------------------------------------------------------------ */
 	/**
