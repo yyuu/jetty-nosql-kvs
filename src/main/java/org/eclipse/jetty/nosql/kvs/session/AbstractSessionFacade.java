@@ -41,4 +41,6 @@ public abstract class AbstractSessionFacade {
 	}
 
 	public abstract ISerializableSession unpack(byte[] raw, ISerializationTranscoder tc) throws TranscoderException;
+
+	public abstract void setClassLoader(ClassLoader cl);
 }

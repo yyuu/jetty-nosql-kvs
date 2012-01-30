@@ -61,6 +61,21 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 		if (sessionFacade == null) {
 			sessionFacade = new SerializableSessionFacade();
 		}
+		ClassLoader classLoader = null;
+		try {
+			// use context class loader during object deserialization.
+			// thanks Daniel Peters!
+			classLoader = getContext().getClassLoader();
+			// TODO: is there any safe way to refer context's class loader?
+			// getContext().getClassLoader() may raise SecurityException.
+			// this will be determine by policy configuration of JRE.
+		} catch(SecurityException error) {
+			log.warn("unable to load context class loader by the reason of " + error.toString() + ".");
+			classLoader = Thread.currentThread().getContextClassLoader();
+		}
+		if (classLoader != null) {
+			sessionFacade.setClassLoader(classLoader);
+		}
 		log.info("started.");
 	}
 

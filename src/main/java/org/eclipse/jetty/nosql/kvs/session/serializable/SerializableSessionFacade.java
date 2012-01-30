@@ -36,4 +36,10 @@ public class SerializableSessionFacade extends AbstractSessionFacade {
 		}
 		return session;
 	}
+
+	@Override
+	public void setClassLoader(ClassLoader cl) {
+		SerializableTranscoder tc = new SerializableTranscoder(cl);
+		transcoder = tc;
+	}
 }
