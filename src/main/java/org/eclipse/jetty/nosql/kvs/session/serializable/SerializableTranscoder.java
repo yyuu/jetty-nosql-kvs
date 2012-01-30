@@ -10,6 +10,16 @@ import org.eclipse.jetty.nosql.kvs.session.ISerializationTranscoder;
 import org.eclipse.jetty.nosql.kvs.session.TranscoderException;
 
 public class SerializableTranscoder implements ISerializationTranscoder {
+	private ClassLoader classLoader = null;
+
+	public SerializableTranscoder() {
+		this(Thread.currentThread().getContextClassLoader());
+	}
+
+	public SerializableTranscoder(ClassLoader cl) {
+		classLoader = cl;
+	}
+
 	public byte[] encode(Object obj) throws TranscoderException {
 		if (obj == null) {
 			return null;
@@ -34,7 +44,7 @@ public class SerializableTranscoder implements ISerializationTranscoder {
 		Object obj = null;
 		try {
 			ByteArrayInputStream bais = new ByteArrayInputStream(raw);
-			ObjectInputStream ois = new ClassLoadingObjectInputStream(bais);
+			ObjectInputStream ois = new ClassLoadingObjectInputStream(bais, classLoader);
 			obj = ois.readObject();
 		} catch (Exception error) {
 			throw(new TranscoderException(error));

@@ -7,8 +7,12 @@ import org.eclipse.jetty.nosql.kvs.session.TranscoderException;
 
 public class SerializableSessionFacade extends AbstractSessionFacade {
 	public SerializableSessionFacade() {
+		this(Thread.currentThread().getContextClassLoader());
+	}
+
+	public SerializableSessionFacade(ClassLoader cl) {
 		sessionFactory = new SerializableSessionFactory();
-		transcoder = new SerializableTranscoder();
+		transcoder = new SerializableTranscoder(cl);
 	}
 
 	@Override
