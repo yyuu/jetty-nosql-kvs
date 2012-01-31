@@ -61,6 +61,7 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 	protected String _keySuffix = "";
 	protected IKeyValueStoreClient _client = null;
 	protected String _serverString = "";
+	protected int _timeoutInMs = 1000;
 
 	/* ------------------------------------------------------------ */
 	public KeyValueStoreSessionIdManager(Server server, String serverString) throws IOException {
@@ -130,7 +131,7 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 		return;
 	}
 
-	protected abstract IKeyValueStoreClient newClient(String serverString);
+	protected abstract AbstractKeyValueStoreClient newClient(String serverString);
 
 	/* ------------------------------------------------------------ */
 	/**
@@ -390,4 +391,19 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 		this._keySuffix = keySuffix;
 	}
 
+	public String getServerString() {
+		return _serverString;
+	}
+
+	public void setServerString(String serverString) {
+		this._serverString = serverString;
+	}
+
+	public int getTimeoutInMs() {
+		return _timeoutInMs;
+	}
+
+	public void setTimeoutInMs(int timeoutInMs) {
+		this._timeoutInMs = timeoutInMs;
+	}
 }
