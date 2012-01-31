@@ -10,10 +10,13 @@ public interface IKeyValueStoreClient {
 
 	public byte[] get(String key) throws KeyValueStoreClientException;
 
+// "set" means "store this data".
 	public boolean set(String key, byte[] raw) throws KeyValueStoreClientException;
 
 	public boolean set(String key, byte[] raw, int exp) throws KeyValueStoreClientException;
 
+// "add" means "store this data, but only if the server *doesn't* already
+// hold data for this key".
 	public boolean add(String key, byte[] raw) throws KeyValueStoreClientException;
 
 	public boolean add(String key, byte[] raw, int exp) throws KeyValueStoreClientException;
