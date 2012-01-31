@@ -60,12 +60,14 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 	protected String _keyPrefix = "";
 	protected String _keySuffix = "";
 	protected IKeyValueStoreClient _client = null;
+	protected String _serverString = "";
 
 	/* ------------------------------------------------------------ */
 	public KeyValueStoreSessionIdManager(Server server, String serverString) throws IOException {
 		super(new Random());
 		this._server = server;
-		this._client = newClient(serverString);
+//		this._client = newClient(serverString); // will be initialized on startup
+		this._serverString = serverString;
 	}
 
 	/* ------------------------------------------------------------ */
@@ -211,9 +213,11 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 	protected void doStart() throws Exception {
 		log.info("starting...");
 		super.doStart();
-		if (_client != null) {
-			_client.establish();
+		_client = newClient(_serverString);
+		if (_client == null) {
+			throw new IllegalStateException("newClient(" + _serverString + ") returns null.");
 		}
+		_client.establish();
 		log.info("started.");
 	}
 
@@ -223,6 +227,7 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 		log.info("stopping...");
 		if (_client != null) {
 			_client.shutdown();
+			_client = null;
 		}
 		super.doStop();
 		log.info("stopped.");
