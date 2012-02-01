@@ -66,7 +66,7 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 			// use context class loader during object deserialization.
 			// thanks Daniel Peters!
 			classLoader = getContext().getClassLoader();
-			// TODO: is there any safe way to refer context's class loader?
+			// FIXME: is there any safe way to refer context's class loader?
 			// getContext().getClassLoader() may raise SecurityException.
 			// this will be determine by policy configuration of JRE.
 		} catch(SecurityException error) {
@@ -191,17 +191,29 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 		// followed by bindings and then activation.
 		session.willPassivate();
 		try {
-			session.clearAttributes();
+//			session.clearAttributes();
 
-			for (Enumeration<String> e = data.getAttributeNames(); e
-					.hasMoreElements();) {
+			for (Enumeration<String> e = data.getAttributeNames(); e.hasMoreElements();) {
 				String name = e.nextElement();
 				Object value = data.getAttribute(name);
-				session.doPutOrRemove(name, value);
-				session.bindValue(name, value);
+				// only bind value if it didn't exist in session
+				if (!session.getNames().contains(name)) {
+					session.doPutOrRemove(name, value);
+					session.bindValue(name, value);
+				} else {
+					session.doPutOrRemove(name, value);
+				}
 			}
-			session.didActivate();
 
+			// cleanup, remove values from session, that don't exist in data anymore:
+			for (String name: session.getNames()) {
+				if (!data.getAttributeMap().containsKey(name)) {
+					session.doPutOrRemove(name, null);
+					session.unbindValue(name,  session.getAttribute(name));
+				}
+			}
+
+			session.didActivate();
 			return version;
 		} catch (Exception e) {
 			log.warn(e);
