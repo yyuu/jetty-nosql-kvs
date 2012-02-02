@@ -8,7 +8,7 @@ Abstract session manager implementation for simple Key-Value storages.
 ## Build
 
 This repository is a part of [jetty-nosql-memcached-parent](https://github.com/yyuu/jetty-nosql-memcached-parent).
-Please check out its BUILDING.txt first.
+Please check out it first.
 
 
 ## License
