@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import org.eclipse.jetty.nosql.kvs.session.ClassLoadingObjectInputStream;
 import org.eclipse.jetty.nosql.kvs.session.ISerializationTranscoder;
 import org.eclipse.jetty.nosql.kvs.session.TranscoderException;
 

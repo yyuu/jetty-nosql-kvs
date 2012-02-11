@@ -1,4 +1,4 @@
-package org.eclipse.jetty.nosql.kvs.session;
+package org.eclipse.jetty.nosql.kvs.session.serializable;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
