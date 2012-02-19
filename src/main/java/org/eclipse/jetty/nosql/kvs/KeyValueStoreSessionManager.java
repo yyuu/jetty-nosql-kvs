@@ -26,7 +26,7 @@ import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
 
 public class KeyValueStoreSessionManager extends NoSqlSessionManager {
-	private final static Logger log = Log.getLogger("org.eclipse.jetty.nosql.memcached.KeyValueStoreSessionManager");
+	private final static Logger log = Log.getLogger("org.eclipse.jetty.nosql.kvs.KeyValueStoreSessionManager");
 	protected String _cookieDomain = getSessionCookieConfig().getDomain();
 	protected String _cookiePath = getSessionCookieConfig().getPath();
 	protected AbstractSessionFacade sessionFacade = null;
@@ -181,8 +181,7 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 		// If it has been flagged invalid, invalidate
 		boolean valid = data.isValid();
 		if (!valid) {
-			log.debug("refresh:marking invalid, valid flag "
-					+ valid);
+			log.debug("refresh:marking invalid, valid flag " + valid);
 			session.invalidate();
 			return null;
 		}

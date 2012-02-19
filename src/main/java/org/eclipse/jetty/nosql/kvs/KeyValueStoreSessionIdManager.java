@@ -49,7 +49,7 @@ import org.eclipse.jetty.util.log.Logger;
  * unvalidated atm)
  */
 public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdManager {
-	private final static Logger log = Log.getLogger("org.eclipse.jetty.nosql.memcached.KeyValueStoreSessionIdManager");
+	private final static Logger log = Log.getLogger("org.eclipse.jetty.nosql.kvs.KeyValueStoreSessionIdManager");
 
 	protected Server _server;
 
@@ -270,8 +270,7 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 		// get rid of them
 		Handler[] contexts = _server.getChildHandlersByClass(ContextHandler.class);
 		for (int i = 0; contexts != null && i < contexts.length; i++) {
-			SessionHandler sessionHandler = (SessionHandler) ((ContextHandler) contexts[i])
-					.getChildHandlerByClass(SessionHandler.class);
+			SessionHandler sessionHandler = (SessionHandler) ((ContextHandler) contexts[i]).getChildHandlerByClass(SessionHandler.class);
 			if (sessionHandler != null) {
 				SessionManager manager = sessionHandler.getSessionManager();
 				if (manager != null && manager instanceof KeyValueStoreSessionManager) {
