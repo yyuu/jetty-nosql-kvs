@@ -53,7 +53,7 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 
 	protected Server _server;
 
-	protected long _scavengePeriod = TimeUnit.MINUTES.toMillis(30); // 30 minutes
+	protected long _defaultExpiry = TimeUnit.MINUTES.toMillis(30); // 30 minutes
 
 	protected final Set<String> _sessions = Collections.synchronizedSet(new LinkedHashSet<String>());
 
@@ -72,142 +72,11 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 		this._serverString = serverString;
 	}
 
-	/* ------------------------------------------------------------ */
-	/**
-	 * @deprecated
-	 * Scavenge is a process that periodically checks the tracked session ids of
-	 * this given instance of the session id manager to see if they are past the
-	 * point of expiration.
-	 */
-	protected void scavenge() {
-		return;
-	}
-
-	/* ------------------------------------------------------------ */
-	/**
-	 * @deprecated
-	 * ScavengeFully is a process that periodically checks the tracked session
-	 * ids of this given instance of the session id manager to see if they are
-	 * past the point of expiration.
-	 * 
-	 * NOTE: this is potentially devastating and may lead to serious session
-	 * coherence issues, not to be used in a running cluster
-	 */
-	protected void scavengeFully() {
-		return;
-	}
-
-	/* ------------------------------------------------------------ */
-	/**
-	 * @deprecated
-	 * Purge is a process that cleans the memcached cluster of old sessions that
-	 * are no longer valid.
-	 * 
-	 * There are two checks being done here:
-	 * 
-	 * - if the accessed time is older then the current time minus the purge
-	 * invalid age and it is no longer valid then remove that session - if the
-	 * accessed time is older then the current time minus the purge valid age
-	 * then we consider this a lost record and remove it
-	 * 
-	 * NOTE: if your system supports long lived sessions then the purge valid
-	 * age should be set to zero so the check is skipped.
-	 * 
-	 * The second check was added to catch sessions that were being managed on
-	 * machines that might have crashed without marking their sessions as
-	 * 'valid=false'
-	 */
-	protected void purge() {
-		return;
-	}
-
-	/* ------------------------------------------------------------ */
-	/**
-	 * @deprecated
-	 * Purge is a process that cleans the memcached cluster of old sessions that
-	 * are no longer valid.
-	 * 
-	 */
-	protected void purgeFully() {
-		return;
-	}
-
 	protected abstract AbstractKeyValueStoreClient newClient(String serverString);
 
 	/* ------------------------------------------------------------ */
-	/**
-	 * @deprecated
-	 */
-	public boolean isPurgeEnabled() {
-		return false;
-	}
-
-	/* ------------------------------------------------------------ */
-	/**
-	 * @deprecated
-	 */
-	public void setPurge(boolean purge) {
-		return;
-	}
-
-	/* ------------------------------------------------------------ */
-	/**
-	 * @deprecated
-	 * sets the scavengeDelay
-	 */
-	public void setScavengeDelay(long scavengeDelay) {
-		this._scavengePeriod = scavengeDelay;
-	}
-
-	/* ------------------------------------------------------------ */
 	public void setScavengePeriod(long scavengePeriod) {
-		this._scavengePeriod = scavengePeriod;
-	}
-
-	/* ------------------------------------------------------------ */
-	/**
-	 * @deprecated
-	 */
-	public void setPurgeDelay(long purgeDelay) {
-		return;
-	}
-
-	/* ------------------------------------------------------------ */
-	/**
-	 * @deprecated
-	 */
-	public long getPurgeInvalidAge() {
-		return -1;
-	}
-
-	/* ------------------------------------------------------------ */
-	/**
-	 * @deprecated
-	 * sets how old a session is to be persisted past the point it is no longer
-	 * valid
-	 */
-	public void setPurgeInvalidAge(long purgeValidAge) {
-		return;
-	}
-
-	/* ------------------------------------------------------------ */
-	/**
-	 * @deprecated
-	 */
-	public long getPurgeValidAge() {
-		return -1;
-	}
-
-	/* ------------------------------------------------------------ */
-	/**
-	 * @deprecated
-	 * sets how old a session is to be persist past the point it is considered
-	 * no longer viable and should be removed
-	 * 
-	 * NOTE: set this value to 0 to disable purging of valid sessions
-	 */
-	public void setPurgeValidAge(long purgeValidAge) {
-		return;
+		this._defaultExpiry = scavengePeriod;
 	}
 
 	/* ------------------------------------------------------------ */
@@ -369,16 +238,12 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 		return result;
 	}
 
-	protected Set<String> getSessions() {
-		return Collections.unmodifiableSet(_sessions);
-	}
-
 	public int getDefaultExpiry() {
-		return (int) TimeUnit.MILLISECONDS.toSeconds(_scavengePeriod);
+		return (int) TimeUnit.MILLISECONDS.toSeconds(_defaultExpiry);
 	}
 
 	public void setDefaultExpiry(int defaultExpiry) {
-		this._scavengePeriod = TimeUnit.SECONDS.toMillis(defaultExpiry);
+		this._defaultExpiry = TimeUnit.SECONDS.toMillis(defaultExpiry);
 	}
 
 	public String getKeyPrefix() {

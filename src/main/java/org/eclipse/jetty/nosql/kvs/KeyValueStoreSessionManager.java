@@ -354,46 +354,6 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 		}
 	}
 
-	/**
-	 * @deprecated
-	 */
-	public void purge() {
-		return;
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public void purgeFully() {
-		return;
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public void scavenge() {
-		return;
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public void scavengeFully() {
-		return;
-	}
-
-
-	/*------------------------------------------------------------ */
-	/**
-	 * returns the total number of session objects in the session store
-	 * 
-	 * the count() operation itself is optimized to perform on the server side
-	 * and avoid loading to client side.
-	 */
-	public long getSessionStoreCount() {
-		return ((KeyValueStoreSessionIdManager)_sessionIdManager).getSessions().size();
-	}
-
 	protected String mangleKey(String idInCluster) {
 		return idInCluster;
 	}
