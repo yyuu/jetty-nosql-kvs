@@ -62,6 +62,7 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 	protected IKeyValueStoreClient _client = null;
 	protected String _serverString = "";
 	protected int _timeoutInMs = 1000;
+	protected boolean _sticky = true;
 
 	/* ------------------------------------------------------------ */
 	public KeyValueStoreSessionIdManager(Server server, String serverString) throws IOException {
@@ -251,7 +252,9 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 
 		log.debug("addSession:" + session.getId());
 
-		_sessions.add(session.getId());
+		if (isSticky()) {
+			_sessions.add(session.getId());
+		}
 	}
 
 	/* ------------------------------------------------------------ */
@@ -260,12 +263,16 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 			return;
 		}
 
-		_sessions.remove(session.getId());
+		if (isSticky()) {
+			_sessions.remove(session.getId());
+		}
 	}
 
 	/* ------------------------------------------------------------ */
 	public void invalidateAll(String sessionId) {
-		_sessions.remove(sessionId);
+		if (isSticky()) {
+			_sessions.remove(sessionId);
+		}
 		// tell all contexts that may have a session object with this id to
 		// get rid of them
 		Handler[] contexts = _server.getChildHandlersByClass(ContextHandler.class);
@@ -404,5 +411,13 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 
 	public void setTimeoutInMs(int timeoutInMs) {
 		this._timeoutInMs = timeoutInMs;
+	}
+
+	public void setSticky(boolean sticky) {
+		this._sticky = sticky;
+	}
+
+	public boolean isSticky() {
+		return _sticky;
 	}
 }

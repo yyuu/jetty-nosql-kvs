@@ -22,6 +22,7 @@ import org.eclipse.jetty.nosql.kvs.session.ISerializableSession;
 import org.eclipse.jetty.nosql.kvs.session.TranscoderException;
 import org.eclipse.jetty.nosql.kvs.session.serializable.SerializableSessionFacade;
 import org.eclipse.jetty.server.SessionIdManager;
+import org.eclipse.jetty.server.session.AbstractSession;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
 
@@ -30,6 +31,7 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 	protected String _cookieDomain = getSessionCookieConfig().getDomain();
 	protected String _cookiePath = getSessionCookieConfig().getPath();
 	protected AbstractSessionFacade sessionFacade = null;
+	protected boolean _sticky = true;
 
 	/* ------------------------------------------------------------ */
 	public KeyValueStoreSessionManager() {
@@ -100,6 +102,7 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 	public void setSessionIdManager(SessionIdManager idManager) {
 		try {
 			super.setSessionIdManager((KeyValueStoreSessionIdManager) idManager);
+			setSticky(((KeyValueStoreSessionIdManager) idManager).isSticky());
 		} catch (ClassCastException error) {
 			log.warn("unable to cast " + idManager.getClass() + " to " + KeyValueStoreSessionIdManager.class + ".");
 			throw(error);
@@ -221,6 +224,25 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 		return null;
 	}
 
+	@Override
+	protected void addSession(AbstractSession session) {
+		if (isSticky()) {
+			super.addSession(session);
+		}
+	}
+	
+	@Override
+	public AbstractSession getSession(String idInCluster)
+	{
+		AbstractSession session;
+		if (isSticky()) {
+			session = super.getSession(idInCluster);
+		} else {
+			session = loadSession(idInCluster);
+		}
+		return session;
+	}
+
 	/*------------------------------------------------------------ */
 	@Override
 	protected NoSqlSession loadSession(String clusterId) {
@@ -301,9 +323,13 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 	/*------------------------------------------------------------ */
 	@Override
 	protected void invalidateSessions() throws Exception {
-		// do nothing.
-		// we do not want to invalidate all sessions on doStop().
-		log.debug("invalidateSessions: nothing to do.");
+		if (isSticky()) {
+			super.invalidateSessions();
+		} else {
+			// do nothing.
+			// we do not want to invalidate all sessions on doStop().
+			log.debug("invalidateSessions: nothing to do.");
+		}
 	}
 
 	/*------------------------------------------------------------ */
@@ -430,5 +456,13 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 
 	public void setSessionFacade(AbstractSessionFacade sf) {
 		this.sessionFacade = sf;
+	}
+
+	public void setSticky(boolean sticky) {
+		this._sticky = sticky;
+	}
+
+	public boolean isSticky() {
+		return _sticky;
 	}
 }
