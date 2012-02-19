@@ -5,7 +5,7 @@ public abstract class AbstractKeyValueStoreClient implements IKeyValueStoreClien
 	protected int _timeoutInMs = 1000;
 
 	public AbstractKeyValueStoreClient(String serverString) {
-		this._serverString = serverString;
+		setServerString(serverString);
 	}
 
 	public String getServerString() {
