@@ -118,7 +118,6 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 				if (session.isValid()) {
 					data = getSessionFacade().create(session);
 				} else {
-					log.warn("save: could not recover attributes of invalidated session: id=" + session.getId());
 					data = getSessionFacade().create(session.getId(), session.getCreationTime());
 					data.setValid(false);
 				}
