@@ -22,14 +22,16 @@ import org.eclipse.jetty.nosql.kvs.session.ISerializableSession;
 import org.eclipse.jetty.nosql.kvs.session.TranscoderException;
 import org.eclipse.jetty.nosql.kvs.session.serializable.SerializableSessionFacade;
 import org.eclipse.jetty.server.SessionIdManager;
+import org.eclipse.jetty.server.session.AbstractSession;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
 
 public class KeyValueStoreSessionManager extends NoSqlSessionManager {
-	private final static Logger log = Log.getLogger("org.eclipse.jetty.nosql.memcached.KeyValueStoreSessionManager");
+	private final static Logger log = Log.getLogger("org.eclipse.jetty.nosql.kvs.KeyValueStoreSessionManager");
 	protected String _cookieDomain = getSessionCookieConfig().getDomain();
 	protected String _cookiePath = getSessionCookieConfig().getPath();
 	protected AbstractSessionFacade sessionFacade = null;
+	protected boolean _sticky = true;
 
 	/* ------------------------------------------------------------ */
 	public KeyValueStoreSessionManager() {
@@ -100,6 +102,7 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 	public void setSessionIdManager(SessionIdManager idManager) {
 		try {
 			super.setSessionIdManager((KeyValueStoreSessionIdManager) idManager);
+			setSticky(((KeyValueStoreSessionIdManager) idManager).isSticky());
 		} catch (ClassCastException error) {
 			log.warn("unable to cast " + idManager.getClass() + " to " + KeyValueStoreSessionIdManager.class + ".");
 			throw(error);
@@ -180,8 +183,7 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 		// If it has been flagged invalid, invalidate
 		boolean valid = data.isValid();
 		if (!valid) {
-			log.debug("refresh:marking invalid, valid flag "
-					+ valid);
+			log.debug("refresh:marking invalid, valid flag " + valid);
 			session.invalidate();
 			return null;
 		}
@@ -219,6 +221,25 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 		}
 
 		return null;
+	}
+
+	@Override
+	protected void addSession(AbstractSession session) {
+		if (isSticky()) {
+			super.addSession(session);
+		}
+	}
+	
+	@Override
+	public AbstractSession getSession(String idInCluster)
+	{
+		AbstractSession session;
+		if (isSticky()) {
+			session = super.getSession(idInCluster);
+		} else {
+			session = loadSession(idInCluster);
+		}
+		return session;
 	}
 
 	/*------------------------------------------------------------ */
@@ -301,9 +322,13 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 	/*------------------------------------------------------------ */
 	@Override
 	protected void invalidateSessions() throws Exception {
-		// do nothing.
-		// we do not want to invalidate all sessions on doStop().
-		log.debug("invalidateSessions: nothing to do.");
+		if (isSticky()) {
+			super.invalidateSessions();
+		} else {
+			// do nothing.
+			// we do not want to invalidate all sessions on doStop().
+			log.debug("invalidateSessions: nothing to do.");
+		}
 	}
 
 	/*------------------------------------------------------------ */
@@ -326,46 +351,6 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 				throw(new RuntimeException("unable to set key: data=" + data));
 			}
 		}
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public void purge() {
-		return;
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public void purgeFully() {
-		return;
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public void scavenge() {
-		return;
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public void scavengeFully() {
-		return;
-	}
-
-
-	/*------------------------------------------------------------ */
-	/**
-	 * returns the total number of session objects in the session store
-	 * 
-	 * the count() operation itself is optimized to perform on the server side
-	 * and avoid loading to client side.
-	 */
-	public long getSessionStoreCount() {
-		return ((KeyValueStoreSessionIdManager)_sessionIdManager).getSessions().size();
 	}
 
 	protected String mangleKey(String idInCluster) {
@@ -430,5 +415,13 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 
 	public void setSessionFacade(AbstractSessionFacade sf) {
 		this.sessionFacade = sf;
+	}
+
+	public void setSticky(boolean sticky) {
+		this._sticky = sticky;
+	}
+
+	public boolean isSticky() {
+		return _sticky;
 	}
 }
