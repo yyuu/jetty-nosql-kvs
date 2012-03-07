@@ -63,7 +63,7 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 		if (sessionFacade == null) {
 			sessionFacade = new SerializableSessionFacade();
 		}
-		ClassLoader classLoader = null;
+		ClassLoader classLoader;
 		try {
 			// use context class loader during object deserialization.
 			// thanks Daniel Peters!
@@ -101,8 +101,9 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 	@Override
 	public void setSessionIdManager(SessionIdManager idManager) {
 		try {
-			super.setSessionIdManager((KeyValueStoreSessionIdManager) idManager);
-			setSticky(((KeyValueStoreSessionIdManager) idManager).isSticky());
+			KeyValueStoreSessionIdManager kvsIdManager = (KeyValueStoreSessionIdManager) idManager;
+			super.setSessionIdManager(kvsIdManager);
+			setSticky(kvsIdManager.isSticky());
 		} catch (ClassCastException error) {
 			log.warn("unable to cast " + idManager.getClass() + " to " + KeyValueStoreSessionIdManager.class + ".");
 			throw(error);
@@ -116,7 +117,7 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 			log.debug("save:" + session);
 			session.willPassivate();
 
-			ISerializableSession data = null;
+			ISerializableSession data;
 			synchronized (session) {
 				if (session.isValid()) {
 					data = getSessionFacade().create(session);
@@ -129,7 +130,7 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 			data.setPath(_cookiePath);
 			long longVersion = 1; // default version for new sessions
 			if (version != null) {
-				longVersion = ((Long)version).longValue() + 1L;
+				longVersion = (Long) version + 1L;
 			}
 			data.setVersion(longVersion);
 
@@ -143,7 +144,7 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 				session.didActivate();
 			}
 
-			return Long.valueOf(longVersion);
+			return longVersion;
 		} catch (Exception e) {
 			log.warn(e);
 		}
@@ -154,24 +155,21 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 	@Override
 	protected Object refresh(NoSqlSession session, Object version) {
 		log.debug("refresh " + session);
+		ISerializableSession data = getKey(session.getClusterId());
 
-		// check if our in memory version is the same as what is on the disk
+		// check if our in memory version is the same as what is on KVS
 		if (version != null) {
-			ISerializableSession data = getKey(session.getClusterId());
 			long saved = 0;
 			if (data != null) {
 				saved = data.getVersion();
 
-				if (saved == ((Long) version).longValue()) {
+				if (saved == (Long) version) {
 					log.debug("refresh not needed");
 					return version;
 				}
 				version = Long.valueOf(saved);
 			}
 		}
-
-		// If we are here, we have to load the object
-		ISerializableSession data = getKey(session.getClusterId());
 
 		// If it doesn't exist, invalidate
 		if (data == null) {
@@ -192,8 +190,6 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 		// followed by bindings and then activation.
 		session.willPassivate();
 		try {
-//			session.clearAttributes();
-
 			for (Enumeration<String> e = data.getAttributeNames(); e.hasMoreElements();) {
 				String name = e.nextElement();
 				Object value = data.getAttribute(name);
@@ -383,10 +379,7 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 		} catch (Exception error) {
 			log.warn("unknown exception during serialization: id=" + idInCluster + ", data=" + data, error);
 		}
-		if (raw == null) {
-			return false;
-		}
-		return ((KeyValueStoreSessionIdManager)_sessionIdManager).setKey(mangleKey(idInCluster), raw, expiry);
+		return raw != null && ((KeyValueStoreSessionIdManager) _sessionIdManager).setKey(mangleKey(idInCluster), raw, expiry);
 	}
 
 	protected boolean addKey(String idInCluster, ISerializableSession data) {
@@ -399,10 +392,7 @@ public class KeyValueStoreSessionManager extends NoSqlSessionManager {
 		} catch (Exception error) {
 			log.warn("unknown exception during serialization: id=" + idInCluster + ", data=" + data, error);
 		}
-		if (raw == null) {
-			return false;
-		}
-		return ((KeyValueStoreSessionIdManager)_sessionIdManager).addKey(mangleKey(idInCluster), raw, expiry);
+		return raw != null && ((KeyValueStoreSessionIdManager) _sessionIdManager).addKey(mangleKey(idInCluster), raw, expiry);
 	}
 
 	protected boolean deleteKey(String idInCluster) {

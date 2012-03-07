@@ -146,7 +146,7 @@ public abstract class KeyValueStoreSessionIdManager extends AbstractSessionIdMan
 		// get rid of them
 		Handler[] contexts = _server.getChildHandlersByClass(ContextHandler.class);
 		for (int i = 0; contexts != null && i < contexts.length; i++) {
-			SessionHandler sessionHandler = (SessionHandler) ((ContextHandler) contexts[i]).getChildHandlerByClass(SessionHandler.class);
+			SessionHandler sessionHandler = ((ContextHandler) contexts[i]).getChildHandlerByClass(SessionHandler.class);
 			if (sessionHandler != null) {
 				SessionManager manager = sessionHandler.getSessionManager();
 				if (manager != null && manager instanceof KeyValueStoreSessionManager) {
