@@ -8,6 +8,7 @@
 	<artifactId>jetty-nosql-kvs</artifactId>
 	<name>jetty-nosql-kvs</name>
 	<description>An abstract session manager impl for jetty to store sessions on key-value-store.</description>
+	<url>https://github.com/yyuu/jetty-nosql-kvs</url>
 	<dependencies>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
